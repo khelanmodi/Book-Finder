@@ -82,8 +82,8 @@ EMBEDDING_DIM=128
 **MongoDB Connection Strings:**
 
 - **Local MongoDB**: `mongodb://localhost:27017`
-- **MongoDB Atlas**: `mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority`
-- **Azure Cosmos DB**: `mongodb://account-name:password@account-name.mongo.cosmos.azure.com:10255/?ssl=true`
+- **MongoDB Atlas**: `mongodb+srv://username:password@cluster`
+- **Azure Cosmos DB**: `mongodb://account-name:password@account-name.mongo.cosmos.azure`
 
 ### 4. Start MongoDB (if running locally)
 
