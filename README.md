@@ -9,19 +9,17 @@ An intelligent book recommendation system powered by OpenAI embeddings and OSS D
 [![Beanie](https://img.shields.io/badge/Beanie-ODM-purple)](https://beanie-odm.dev/)
 
 
-## 🌟 Features
+## Features
 
-- 🌐 **Modern Web UI**: Beautiful, responsive interface with real-time semantic search
-- 🔍 **Semantic Search**: Find books using natural language descriptions ("coming of age story", "dystopian future with rebellion")
-- 🤖 **AI-Powered Embeddings**: Uses OpenAI's `text-embedding-3-small` model (1536-dimensional vectors)
-- 🗄️ **OSS DocumentDB**: MongoDB-compatible document database built on PostgreSQL
-- ⚡ **IVF Vector Search**: Native vector indexing for high-speed similarity search
-- 🚀 **Async Everything**: Fully async stack (Motor + Beanie) for non-blocking database operations
-- 📚 **RESTful API**: Comprehensive API with automatic OpenAPI documentation
-- 🎯 **Similarity Scoring**: Shows match percentages for every search result
+- **Semantic Search**: Find books using natural language descriptions ("coming of age story", "dystopian future with rebellion")
+- **AI-Powered Embeddings**: Uses OpenAI's `text-embedding-3-small` model (1536-dimensional vectors)
+- **OSS DocumentDB**: MongoDB-compatible document database built on PostgreSQL
+- **IVF Vector Search**: Native vector indexing for high-speed similarity search
+- **Async Everything**: Fully async stack (Motor + Beanie) for non-blocking database operations
+- **RESTful API**: Comprehensive API with automatic OpenAPI documentation
+- **Similarity Scoring**: Shows match percentages for every search result
 
-## 🏗️ Architecture
-
+## Architecture
 ```
 ┌─────────────────┐
 │   Web Browser   │
@@ -47,15 +45,14 @@ An intelligent book recommendation system powered by OpenAI embeddings and OSS D
 └─────────────────────────────────┘
 ```
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **Python 3.11+**
 - **Docker Desktop** (for OSS DocumentDB)
 - **OpenAI API Key**
 - **Git** (for cloning the repository)
 
-## 🚀 Quick Start
-
+## Quick Start
 ### 1. Start OSS DocumentDB Container
 
 ```bash
@@ -73,7 +70,6 @@ docker ps | grep documentdb
 ```
 
 ### 2. Install Python Dependencies
-
 ```bash
 cd "Book Finder"
 pip install -r requirements.txt
@@ -319,48 +315,10 @@ results = await Book.aggregate([
 # ]
 ```
 
-### 3. **Async Architecture**
-
-The entire stack is **fully async** for maximum performance:
-
-```python
-# Database Layer: Motor (async MongoDB driver)
-client = AsyncIOMotorClient(settings.MONGODB_URL)
-await client.admin.command('ping')
-
-# ODM Layer: Beanie (async Document mapper)
-class Book(Document):
-    title: str
-    author: str
-    embedding: List[float]
-
-    class Settings:
-        name = "books"
-
-# Service Layer: All methods are async
-class BookService:
-    async def create_book(self, book_data: Dict) -> Dict:
-        book = Book(**book_data)
-        await book.insert()  # Non-blocking!
-        return book
-
-# Route Layer: All endpoints are async
-@router.get("/books/")
-async def get_books(...):
-    books = await book_service.get_books(...)  # Non-blocking!
-    return books
-```
-
-**Why Async Matters:**
-- ✅ Non-blocking database operations
-- ✅ Handles concurrent requests efficiently
-- ✅ No event loop blocking (the hanging issue we fixed!)
-- ✅ Scales to handle many simultaneous users
 
 ## 📊 Database Schema
 
 **Collection:** `books`
-
 ```javascript
 {
   "_id": ObjectId("697da4702f5baa8c40dda976"),
@@ -517,58 +475,6 @@ curl "http://localhost:8000/api/v1/books/stats/embeddings"
 
 ## 🛠️ Development Tools
 
-### Interactive API Documentation
-
-FastAPI automatically generates interactive API documentation:
-
-- **Swagger UI**: http://localhost:8000/docs
-  - Try out API endpoints directly in the browser
-  - See request/response schemas
-  - Test different parameters
-
-- **ReDoc**: http://localhost:8000/redoc
-  - Clean, readable API documentation
-  - Searchable endpoint reference
-
-### MongoDB Shell (mongosh)
-
-Connect to OSS DocumentDB using MongoDB shell:
-
-```bash
-mongosh "mongodb://<username>:<password>@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true"
-```
-
-**Useful commands:**
-```javascript
-// Switch to bookfinder database
-use bookfinder
-
-// Count books
-db.books.count()
-
-// View a sample book
-db.books.findOne()
-
-// Find books by author
-db.books.find({ "author": "George Orwell" })
-
-// Check indexes
-db.books.getIndexes()
-
-// View embedding coverage
-db.books.aggregate([
-  {
-    $group: {
-      _id: null,
-      total: { $sum: 1 },
-      withEmbeddings: {
-        $sum: { $cond: [{ $ne: ["$embedding", null] }, 1, 0] }
-      }
-    }
-  }
-])
-```
-
 ### VS Code DocumentDB Extension
 
 View and manage your DocumentDB data directly in VS Code with the official Azure DocumentDB extension.
@@ -678,68 +584,6 @@ async def get_books(self):
 
 **Error:** `AuthenticationError` or `RateLimitError`
 
-**Solutions:**
-1. Verify `OPENAI_KEY` in `.env` is correct
-2. Check API key has sufficient credits
-3. If rate limited, wait or upgrade API plan
-
-## 📈 Performance
-
-- **Embedding Generation**: ~1-2 seconds per book
-- **Vector Search**: <100ms for typical queries
-- **Database Operations**: <50ms (thanks to async!)
-- **Concurrent Requests**: Handles 100+ simultaneous users
-- **Scalability**: Tested with 50 books, designed for 500,000+
-
-## 🔄 Migration from PyMongo to Beanie
-
-This project was **fully migrated** from synchronous PyMongo to async Beanie + Motor to solve request blocking issues with OSS DocumentDB.
-
-### What Changed:
-
-| Component | Before (Sync) | After (Async) |
-|-----------|--------------|---------------|
-| **Driver** | PyMongo | Motor 3.3.2 |
-| **ODM** | None (raw dict) | Beanie 1.24.0 |
-| **Models** | Pydantic BaseModel | Beanie Document |
-| **Services** | `def` methods | `async def` methods |
-| **Routes** | `def` endpoints | `async def` endpoints |
-| **Database calls** | `collection.find()` | `await Book.find()` |
-| **App lifecycle** | `@app.on_event` | `lifespan` context manager |
-
-### Key Benefits:
-
-✅ **Non-blocking I/O**: Database operations don't block the event loop
-✅ **Better Performance**: Handles concurrent requests efficiently
-✅ **Type Safety**: Beanie provides Pydantic validation on Documents
-✅ **Modern Pattern**: Follows FastAPI best practices
-✅ **No More Hanging**: Requests respond immediately!
-
-### Migration Example:
-
-**Before (PyMongo):**
-```python
-from pymongo import MongoClient
-from app.core.database import db
-
-class BookService:
-    def get_books(self) -> List[Dict]:
-        books_collection = db.get_books_collection()
-        books = list(books_collection.find().limit(10))  # BLOCKING!
-        return books
-```
-
-**After (Beanie):**
-```python
-from beanie import Document
-from app.models.book import Book
-
-class BookService:
-    async def get_books(self) -> List[Dict]:
-        books = await Book.find().limit(10).to_list()  # NON-BLOCKING!
-        return books
-```
-
 ## 🚀 Deployment
 
 ### Docker Deployment
@@ -767,47 +611,6 @@ docker build -t bookfinder-api .
 docker run -p 8000:8000 --env-file .env bookfinder-api
 ```
 
-### Production Considerations
-
-1. **Use production ASGI server**: Gunicorn with Uvicorn workers
-   ```bash
-   gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
-   ```
-
-2. **Enable SSL/TLS** for production DocumentDB
-
-3. **Set proper CORS origins** in `.env`:
-   ```env
-   ALLOWED_ORIGINS=["https://yourdomain.com"]
-   ```
-
-4. **Use secrets management** for API keys (Azure Key Vault, AWS Secrets Manager)
-
-5. **Monitor performance** with logging and metrics
-
-## 🤝 Contributing
-
-Contributions are welcome! Key areas:
-
-- Add more embedding models (Cohere, Anthropic)
-- Implement caching (Redis) for embeddings
-- Add user authentication
-- Create frontend improvements
-- Write tests (pytest-asyncio)
-
 ## 📄 License
 
 This project is for educational and demonstration purposes.
-
-## 🙏 Acknowledgments
-
-- **OSS DocumentDB Team** - For the MongoDB-compatible PostgreSQL database
-- **Beanie Contributors** - For the excellent async ODM
-- **FastAPI Team** - For the modern async web framework
-- **OpenAI** - For powerful embedding models
-
----
-
-**Built with ❤️ using async Python, OSS DocumentDB, and AI**
-
-For questions or issues, please create a GitHub issue or contact the maintainers.
