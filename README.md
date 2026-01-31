@@ -61,8 +61,8 @@ An intelligent book recommendation system powered by OpenAI embeddings and OSS D
 docker run -d \
   --name documentdb-container \
   -p 10260:10260 \
-  -e DOCUMENTDB_USER=khelanmodi \
-  -e DOCUMENTDB_PASSWORD=qwerty123 \
+  -e DOCUMENTDB_USER=<username> \
+  -e DOCUMENTDB_PASSWORD=<password> \
   documentdb:latest
 ```
 
@@ -91,7 +91,7 @@ Create a `.env` file:
 
 ```env
 # OSS DocumentDB Connection
-MONGODB_URL=mongodb://khelanmodi:qwerty123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true
+MONGODB_URL=mongodb://<username>:<password>@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true
 DB_NAME=bookfinder
 
 # OpenAI Configuration
@@ -534,7 +534,7 @@ FastAPI automatically generates interactive API documentation:
 Connect to OSS DocumentDB using MongoDB shell:
 
 ```bash
-mongosh "mongodb://khelanmodi:qwerty123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true"
+mongosh "mongodb://<username>:<password>@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true"
 ```
 
 **Useful commands:**
@@ -589,7 +589,7 @@ View and manage your DocumentDB data directly in VS Code with the official Azure
 3. Select "DocumentDB Connection"
 4. Enter connection string:
    ```
-   mongodb://khelanmodi:qwerty123@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true
+   mongodb://<username>:<password>@localhost:10260/?tls=true&tlsAllowInvalidCertificates=true
    ```
 5. Name your connection (e.g., "Local DocumentDB")
 
