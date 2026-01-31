@@ -176,7 +176,7 @@ curl -X POST "http://localhost:8000/api/v1/books/search/text" \
 
 Access the beautiful, responsive web interface at http://localhost:8000
 
-![BookFinder Web Interface - Semantic Book Search](docs/images/bookfinder-web-interface.png)
+![BookFinder Web Interface - Semantic Book Search](/Book%20Finder/docs/images/bookfinder-web-interface.png)
 
 **Features:**
 - 🔍 **Natural Language Search**: Type queries like "romance set in Victorian England" or "dystopian future"
@@ -605,7 +605,7 @@ View and manage your DocumentDB data directly in VS Code with the official Azure
 
 **Example: Viewing Books Collection**
 
-![DocumentDB Extension showing books collection with embeddings](docs/images/documentdb-vscode-extension.png)
+![DocumentDB Extension showing books collection with embeddings](/Book%20Finder/docs/images/documentdb-vscode-extension.png)
 
 The extension provides a powerful GUI for:
 - Inspecting book documents with their 1536-dimensional embeddings
