@@ -84,6 +84,8 @@ uploads/
 temp/
 .cache/
 *.tmp
+*.output
+tasks/*.output
 
 # Jupyter Notebook
 .ipynb_checkpoints

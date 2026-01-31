@@ -1,10 +1,10 @@
-"""Main FastAPI application."""
+"""Main FastAPI application with async DocumentDB support."""
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from pymongo.errors import PyMongoError
 import logging
 from pathlib import Path
 
@@ -12,7 +12,6 @@ from app.config import settings
 from app.core.database import db
 from app.core.exceptions import (
     validation_exception_handler,
-    pymongo_exception_handler,
     generic_exception_handler
 )
 
@@ -27,13 +26,36 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
+
+# Lifespan context manager for startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifecycle: startup and shutdown."""
+    # Startup
+    logger.info("Starting up BookFinder API...")
+    try:
+        await db.connect()
+        logger.info("Database connected successfully")
+    except Exception as e:
+        logger.error(f"Failed to connect to database: {e}")
+        raise
+
+    yield  # Application is running
+
+    # Shutdown
+    logger.info("Shutting down BookFinder API...")
+    await db.close()
+    logger.info("Database connection closed")
+
+
+# Create FastAPI app with lifespan
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
-    description="Book similarity search API using OpenAI embeddings to find semantically similar books based on title and description",
+    description="Book similarity search API using OpenAI embeddings with async DocumentDB",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # CORS middleware
@@ -47,29 +69,14 @@ app.add_middleware(
 
 # Exception handlers
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(PyMongoError, pymongo_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 
-# Startup and shutdown events
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database connection on startup."""
-    logger.info("Starting up BookFinder API...")
-    try:
-        db.connect()
-        logger.info("✓ Database connected successfully")
-    except Exception as e:
-        logger.error(f"✗ Failed to connect to database: {e}")
-        raise
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close database connection on shutdown."""
-    logger.info("Shutting down BookFinder API...")
-    db.close()
-    logger.info("✓ Database connection closed")
+# Simple test endpoint (no database, no files)
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint for testing."""
+    return {"message": "pong", "async": True}
 
 
 # Include routers

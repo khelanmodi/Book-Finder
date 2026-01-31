@@ -40,7 +40,7 @@ async def create_book(book_data: BookCreate):
     book_dict = book_data.model_dump()
 
     try:
-        created_book = book_service.create_book(book_dict)
+        created_book = await book_service.create_book(book_dict)
         logger.info(f"Added book: {created_book['title']} by {created_book['author']}")
         return created_book
     except ValueError as e:
@@ -68,7 +68,7 @@ async def get_books(
     book_service = BookService()
 
     try:
-        books = book_service.get_books(
+        books = await book_service.get_books(
             genre=genre,
             author=author,
             limit=limit,
@@ -85,7 +85,7 @@ async def get_book(book_id: str):
     """Get a specific book by ID."""
     book_service = BookService()
 
-    book = book_service.get_book_by_id(book_id)
+    book = await book_service.get_book_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail=f"Book not found: {book_id}")
 
@@ -108,7 +108,7 @@ async def update_book(book_id: str, update_data: BookUpdate):
     if not update_dict:
         raise HTTPException(status_code=400, detail="No fields to update")
 
-    updated_book = book_service.update_book(book_id, update_dict)
+    updated_book = await book_service.update_book(book_id, update_dict)
     if not updated_book:
         raise HTTPException(status_code=404, detail=f"Book not found: {book_id}")
 
@@ -121,7 +121,7 @@ async def delete_book(book_id: str):
     """Delete a book from the library."""
     book_service = BookService()
 
-    deleted = book_service.delete_book(book_id)
+    deleted = await book_service.delete_book(book_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Book not found: {book_id}")
 
@@ -148,12 +148,12 @@ async def find_similar_books(
 
     try:
         # Get the query book for response
-        query_book = book_service.get_book_by_id(book_id)
+        query_book = await book_service.get_book_by_id(book_id)
         if not query_book:
             raise HTTPException(status_code=404, detail=f"Book not found: {book_id}")
 
         # Find similar books
-        similar = similarity_service.find_similar_by_book_id(book_id, limit=limit)
+        similar = await similarity_service.find_similar_by_book_id(book_id, limit=limit)
 
         return {
             "query_book": query_book,
@@ -191,7 +191,7 @@ async def search_by_text(request: TextSearchRequest):
         query_embedding = embedding_service.create_embedding(request.query)
 
         # Find similar books
-        similar = similarity_service.find_similar_books(
+        similar = await similarity_service.find_similar_books(
             query_embedding=query_embedding,
             limit=request.limit,
             genre_filter=request.genre_filter
@@ -223,7 +223,7 @@ async def get_embedding_stats():
     similarity_service = SimilarityService()
 
     try:
-        stats = similarity_service.get_embedding_stats()
+        stats = await similarity_service.get_embedding_stats()
         return stats
     except Exception as e:
         logger.error(f"Failed to get embedding stats: {e}")

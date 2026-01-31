@@ -1,17 +1,17 @@
-"""Vector similarity search service using Azure DocumentDB native vector search."""
+"""Vector similarity search service using DocumentDB native vector search with async Beanie."""
 import numpy as np
 from typing import List, Dict, Optional
-from bson import ObjectId
+from beanie import PydanticObjectId
 import logging
-from app.core.database import db
+from app.models.book import Book
 
 logger = logging.getLogger(__name__)
 
 
 class SimilarityService:
-    """Vector similarity search using Azure DocumentDB DiskANN."""
+    """Vector similarity search using DocumentDB IVF index with async Beanie."""
 
-    def find_similar_books(
+    async def find_similar_books(
         self,
         query_embedding: np.ndarray,
         limit: int = 10,
@@ -20,7 +20,7 @@ class SimilarityService:
         l_search: int = 100
     ) -> List[Dict]:
         """
-        Find similar books using Azure DocumentDB native vector search.
+        Find similar books using DocumentDB native vector search with async Beanie.
 
         Args:
             query_embedding: 1536-dimensional numpy array (OpenAI embedding)
@@ -35,8 +35,6 @@ class SimilarityService:
             - similarity_score: Float between 0 and 1 (1 = identical)
             - book: Book metadata (title, author, description, genre)
         """
-        books_collection = db.get_books_collection()
-
         # Convert numpy array to list for MongoDB query
         query_vector = query_embedding.tolist()
 
@@ -44,7 +42,7 @@ class SimilarityService:
         filters = []
         if exclude_book_id:
             try:
-                filters.append({"_id": {"$ne": ObjectId(exclude_book_id)}})
+                filters.append({"_id": {"$ne": PydanticObjectId(exclude_book_id)}})
             except Exception as e:
                 logger.warning(f"Invalid book ID format: {exclude_book_id}")
 
@@ -87,8 +85,8 @@ class SimilarityService:
         })
 
         try:
-            # Execute vector search
-            results = list(books_collection.aggregate(pipeline))
+            # Execute vector search using Beanie's aggregate
+            results = await Book.aggregate(pipeline).to_list()
 
             # Format results
             similarities = []
@@ -121,14 +119,14 @@ class SimilarityService:
             logger.error(f"Vector search failed: {e}")
             raise
 
-    def find_similar_by_book_id(
+    async def find_similar_by_book_id(
         self,
         book_id: str,
         limit: int = 10,
         l_search: int = 100
     ) -> List[Dict]:
         """
-        Find similar books given a book ID using Azure DocumentDB vector search.
+        Find similar books given a book ID using DocumentDB vector search with async Beanie.
 
         Args:
             book_id: MongoDB ObjectId as string
@@ -141,39 +139,37 @@ class SimilarityService:
         Raises:
             ValueError: If book not found or has no embedding
         """
-        books_collection = db.get_books_collection()
-
-        # Fetch the reference book
+        # Fetch the reference book using Beanie
         try:
-            book = books_collection.find_one({"_id": ObjectId(book_id)})
+            book = await Book.get(PydanticObjectId(book_id))
         except Exception as e:
             raise ValueError(f"Invalid book ID: {book_id}") from e
 
         if not book:
             raise ValueError(f"Book not found: {book_id}")
 
-        if 'embedding' not in book or book['embedding'] is None:
+        if not book.embedding:
             raise ValueError(f"Book {book_id} has no embedding")
 
         # Convert embedding to numpy array
-        query_embedding = np.array(book['embedding'])
+        query_embedding = np.array(book.embedding)
 
         logger.info(
             f"Vector search for books similar to: "
-            f"{book.get('title', 'Unknown')} by {book.get('author', 'Unknown')}"
+            f"{book.title} by {book.author}"
         )
 
         # Find similar books using native vector search (excluding the query book itself)
-        return self.find_similar_books(
+        return await self.find_similar_books(
             query_embedding,
             limit=limit,
             exclude_book_id=book_id,
             l_search=l_search
         )
 
-    def get_embedding_stats(self) -> Dict:
+    async def get_embedding_stats(self) -> Dict:
         """
-        Get statistics about embeddings in the database.
+        Get statistics about embeddings in the database using async Beanie.
 
         Returns:
             Dictionary with:
@@ -182,12 +178,10 @@ class SimilarityService:
             - books_without_embeddings: Number of books without embeddings
             - coverage: Percentage of books with embeddings
         """
-        books_collection = db.get_books_collection()
-
-        total = books_collection.count_documents({})
-        with_embeddings = books_collection.count_documents({
-            "embedding": {"$exists": True, "$ne": None}
-        })
+        total = await Book.count()
+        with_embeddings = await Book.find(
+            {"embedding": {"$exists": True, "$ne": None}}
+        ).count()
         without_embeddings = total - with_embeddings
 
         coverage = (with_embeddings / total * 100) if total > 0 else 0

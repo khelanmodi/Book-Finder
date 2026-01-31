@@ -1,4 +1,4 @@
-"""Create DiskANN vector index for book similarity search."""
+"""Create IVF vector index for book similarity search."""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -11,13 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 def create_vector_index():
-    """Create DiskANN vector index on book embeddings."""
+    """Create IVF vector index on book embeddings."""
     logger.info("Connecting to database...")
     db.connect()
 
     try:
-        # Create DiskANN vector index on embedding field
-        logger.info("Creating DiskANN vector index on 'embedding' field...")
+        # Create IVF vector index on embedding field
+        logger.info("Creating IVF vector index on 'embedding' field...")
 
         result = db.db.command({
             "createIndexes": "books",
@@ -28,11 +28,10 @@ def create_vector_index():
                         "embedding": "cosmosSearch"
                     },
                     "cosmosSearchOptions": {
-                        "kind": "vector-diskann",
+                        "kind": "vector-ivf",
                         "dimensions": 1536,  # OpenAI text-embedding-3-small
                         "similarity": "COS",  # Cosine similarity
-                        "maxDegree": 32,      # Balance between accuracy and performance
-                        "lBuild": 64          # Higher value for better index quality
+                        "numLists": 100      # Number of clusters for IVF index
                     }
                 }
             ]

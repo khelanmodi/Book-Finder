@@ -1,4 +1,4 @@
-"""Health check endpoint."""
+"""Async health check endpoint."""
 from fastapi import APIRouter
 from app.core.database import db
 from app.config import settings
@@ -9,15 +9,15 @@ router = APIRouter(prefix="/health", tags=["health"])
 @router.get("/")
 async def health_check():
     """
-    Health check endpoint.
+    Health check endpoint with async database ping.
 
     Checks:
-    - MongoDB connection
+    - Async DocumentDB connection
     - Returns API version and status
     """
     try:
-        # Ping MongoDB
-        db.client.admin.command('ping')
+        # Async ping - no blocking!
+        await db.ping()
         database_status = "connected"
         status = "healthy"
     except Exception as e:
@@ -27,5 +27,6 @@ async def health_check():
     return {
         "status": status,
         "version": settings.VERSION,
-        "database": database_status
+        "database": database_status,
+        "async": True
     }
