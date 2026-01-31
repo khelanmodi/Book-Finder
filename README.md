@@ -2,7 +2,7 @@
 
 An intelligent book recommendation system powered by OpenAI embeddings and OSS DocumentDB's native vector search. Built with async Python (FastAPI + Beanie + Motor) for high-performance, non-blocking database operations.
 
-![Python](https://img.shields.io/badge/python-3.11-blue)
+![Python](https://pypi.org/project/pip/)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-green)
 ![DocumentDB](https://img.shields.io/badge/DocumentDB-OSS-blue)
 ![OpenAI](https://img.shields.io/badge/OpenAI-Embeddings-orange)
