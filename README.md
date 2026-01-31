@@ -605,7 +605,8 @@ View and manage your DocumentDB data directly in VS Code with the official Azure
 
 **Example: Viewing Books Collection**
 
-![DocumentDB Extension showing books collection with embeddings](/Book%20Finder/docs/images/documentdb-vscode-extension.png)
+![DocumentDB Extension showing books collection with embeddings](/docs/images/documentdb-vscode-extension.png)
+
 
 The extension provides a powerful GUI for:
 - Inspecting book documents with their 1536-dimensional embeddings
