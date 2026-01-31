@@ -1,4 +1,4 @@
-# 📚 BookFinder - AI-Powered Book Discovery
+# 📚 Book Finder - AI-Powered Book Discovery
 
 An intelligent book recommendation system that uses OpenAI embeddings and Azure DocumentDB's native vector search to find semantically similar books based on natural language queries.
 
@@ -197,17 +197,9 @@ vibe coding/
 
 ## 📈 Performance
 
-- Embedding generation: ~1-2 seconds per book
+- Embedding generation: ~1-2 seconds per book (<$0.01)
 - Vector search: <100ms
 - Scalability: Up to 500,000+ books
-
-## 🐛 Troubleshooting
-
-**Connection errors**: Check `MONGODB_URL` in `.env`
-
-**No results**: Ensure you ran import and index creation scripts
-
-**OpenAI errors**: Verify `OPENAI_KEY` is valid
 
 ## 🚀 Deployment
 
@@ -216,12 +208,6 @@ Deploy to Azure App Service:
 2. Set environment variables
 3. Deploy code via Azure CLI or VS Code
 4. Configure DocumentDB firewall rules
-
-## 📝 API Documentation
-
-Interactive docs available at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
 
 ---
 
